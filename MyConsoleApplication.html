@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Консольное приложение Kotlin в Android Studio — полное руководство</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f6fb; --card:#ffffff; --ink:#1c1e26; --muted:#5d6472;
+    --accent:#7f52ff; --accent-2:#e4485c; --border:#e6e8f0;
+    --code-bg:#1b1e2b; --code-head:#252a3d; --code-ink:#d6deeb;
+    --radius:16px;
+    --shadow:0 10px 30px rgba(23,26,60,.08);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.65; font-size:16px;
+  }
+  .container{max-width:1120px; margin:0 auto; padding:0 24px;}
+  code, pre, kbd{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;}
+
+  /* ===== Шапка ===== */
+  .hero{
+    background:linear-gradient(135deg,#7f52ff 0%,#a94bff 45%,#e4485c 100%);
+    color:#fff; padding:72px 0 110px; position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(600px 300px at 85% 20%,rgba(255,255,255,.18),transparent 60%);
+    pointer-events:none;
+  }
+  .hero .badges{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px;}
+  .badge{
+    background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35);
+    backdrop-filter:blur(6px); padding:6px 14px; border-radius:999px;
+    font-size:13px; font-weight:600; letter-spacing:.3px;
+  }
+  .hero h1{font-size:clamp(2rem,5vw,3.1rem); font-weight:800; line-height:1.15; letter-spacing:-.5px; max-width:800px;}
+  .hero p{margin-top:16px; font-size:1.1rem; max-width:720px; color:rgba(255,255,255,.92);}
+
+  /* ===== Сетка ===== */
+  .layout{display:grid; grid-template-columns:280px minmax(0,1fr); gap:28px; margin-top:-64px; position:relative; z-index:2; padding-bottom:64px;}
+
+  /* ===== Оглавление ===== */
+  .toc{align-self:start; position:sticky; top:24px;}
+  .toc .box{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px;}
+  .toc h2{font-size:.8rem; text-transform:uppercase; letter-spacing:1.4px; color:var(--muted); margin-bottom:14px;}
+  .toc ol{list-style:none; counter-reset:t;}
+  .toc li{counter-increment:t; margin:2px 0;}
+  .toc a{
+    display:flex; gap:10px; align-items:baseline; text-decoration:none; color:var(--ink);
+    font-size:.92rem; font-weight:500; padding:7px 10px; border-radius:10px; transition:.18s;
+  }
+  .toc a::before{
+    content:counter(t,decimal-leading-zero); color:var(--accent); font-weight:700;
+    font-family:'JetBrains Mono',monospace; font-size:.78rem;
+  }
+  .toc a:hover{background:#f0ecff; color:var(--accent);}
+  .toc a.trouble::before{content:'!'; color:var(--accent-2);}
+
+  /* ===== Карточки шагов ===== */
+  .step{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:30px 34px; margin-bottom:26px; scroll-margin-top:24px;
+  }
+  .step header{display:flex; align-items:center; gap:16px; margin-bottom:16px;}
+  .step .num{
+    flex:0 0 44px; height:44px; border-radius:14px; display:grid; place-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#fff; font-weight:800; font-size:1.15rem; font-family:'JetBrains Mono',monospace;
+    box-shadow:0 6px 16px rgba(127,82,255,.35);
+  }
+  .step h2{font-size:1.45rem; font-weight:800; letter-spacing:-.3px;}
+  .step p{margin:10px 0; color:#333846;}
+  .step p code, li code, .callout code{
+    background:#eef0f8; border:1px solid #dfe2ee; color:#5b3fd4;
+    padding:1px 7px; border-radius:7px; font-size:.86em; font-weight:500;
+  }
+  .step ul, .step ol{margin:10px 0 10px 22px; color:#333846;}
+  .step li{margin:7px 0;}
+
+  /* ===== Код ===== */
+  figure.code{margin:18px 0; border-radius:12px; overflow:hidden; background:var(--code-bg); border:1px solid #2c3145;}
+  figure.code figcaption{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    background:var(--code-head); padding:9px 16px; color:#9aa3c4;
+    font-size:12.5px; font-weight:600; letter-spacing:.4px;
+  }
+  figure.code figcaption .fname{display:flex; align-items:center; gap:9px; font-family:'JetBrains Mono',monospace;}
+  figure.code figcaption .fname::before{content:''; width:10px; height:10px; border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));}
+  .copy{
+    background:transparent; border:1px solid #3b4159; color:#9aa3c4; border-radius:8px;
+    padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; transition:.18s;
+    font-family:'Inter',sans-serif;
+  }
+  .copy:hover{border-color:var(--accent); color:#c9b8ff;}
+  figure.code pre{padding:16px 20px; overflow-x:auto; font-size:13.5px; line-height:1.7; color:var(--code-ink);}
+  .tk-kw{color:#c792ea;} .tk-fn{color:#82aaff;} .tk-str{color:#c3e88d;}
+  .tk-com{color:#7b8496; font-style:italic;} .tk-num{color:#f78c6c;}
+  .tk-sec{color:#ffcb6b; font-weight:600;} .tk-key{color:#89ddff;}
+  .tk-var{color:#ffcb6b;} .tk-int{color:#ffe08a;}
+
+  /* ===== Выноски ===== */
+  .callout{display:flex; gap:13px; align-items:flex-start; padding:14px 18px; border-radius:12px; margin:16px 0; font-size:.95rem; border:1px solid;}
+  .callout .ico{font-size:1.2rem; line-height:1.4;}
+  .callout.tip{background:#f2fdf5; border-color:#bbebc9; color:#1d5c33;}
+  .callout.warn{background:#fff9eb; border-color:#f5dfa0; color:#7a5410;}
+  .callout.info{background:#eef2ff; border-color:#c9d4fb; color:#33418f;}
+  .callout.ok{background:#f0fdf4; border-color:#bbf7d0; color:#166534;}
+  .callout strong{font-weight:700;}
+
+  /* ===== Клавиши ===== */
+  kbd{
+    background:#eef0f6; border:1px solid #d5d9e6; border-bottom-width:3px; border-radius:7px;
+    padding:2px 9px; font-size:12.5px; font-weight:600; color:#3a3f52; white-space:nowrap;
+  }
+  table.keys{width:100%; border-collapse:collapse; margin:14px 0;}
+  table.keys td{padding:10px 12px; border-bottom:1px solid var(--border); font-size:.94rem;}
+  table.keys tr:last-child td{border-bottom:none;}
+  table.keys td:first-child{width:150px;}
+
+  /* ===== Неполадки ===== */
+  details{border:1px solid var(--border); border-radius:12px; margin:12px 0; overflow:hidden; background:#fcfcff;}
+  summary{
+    list-style:none; cursor:pointer; padding:15px 20px; font-weight:700; font-size:.98rem;
+    display:flex; align-items:center; gap:10px; background:#f8f9ff; transition:.18s;
+  }
+  summary:hover{background:#f0ecff;}
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:'▸'; color:var(--accent); font-size:1.1rem; transition:transform .2s;}
+  details[open] summary::before{transform:rotate(90deg);}
+  details .body{padding:16px 22px; color:#333846; font-size:.95rem; border-top:1px solid var(--border);}
+
+  /* ===== Прочее ===== */
+  .zip{
+    background:linear-gradient(135deg,#f4efff,#fff0f2); border:1px dashed #c9b6ff;
+    border-radius:var(--radius); padding:24px 28px; margin-bottom:26px; font-size:.98rem;
+  }
+  footer{padding:34px 0 46px; text-align:center; color:var(--muted); font-size:.85rem;}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    .toc{position:static;}
+    .step{padding:24px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="badges">
+      <span class="badge">Kotlin 1.9.24</span>
+      <span class="badge">Gradle Kotlin DSL</span>
+      <span class="badge">Android Studio</span>
+    </div>
+    <h1>Консольное приложение Kotlin в Android Studio</h1>
+    <p>Полноценное руководство с нуля: настройка проекта, запуск и отладка — с использованием Gradle Kotlin DSL и каталога версий (version catalog).</p>
+  </div>
+</header>
+
+<div class="container layout">
+
+  <!-- ======= ОГЛАВЛЕНИЕ ======= -->
+  <aside class="toc">
+    <div class="box">
+      <h2>Содержание</h2>
+      <ol>
+        <li><a href="#step1">Создание пустого проекта</a></li>
+        <li><a href="#step2">Настройка settings.gradle.kts</a></li>
+        <li><a href="#step3">Каталог версий (libs.versions.toml)</a></li>
+        <li><a href="#step4">Корневой build.gradle.kts</a></li>
+        <li><a href="#step5">Файл app/build.gradle.kts</a></li>
+        <li><a href="#step6">Очистка структуры папок</a></li>
+        <li><a href="#step7">Написание Main.kt</a></li>
+        <li><a href="#step8">Синхронизация проекта</a></li>
+        <li><a href="#step9">Запуск приложения</a></li>
+        <li><a href="#step10">Отладка приложения</a></li>
+        <li><a href="#troubleshoot" class="trouble">Устранение неполадок</a></li>
+      </ol>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- ======= ШАГ 1 ======= -->
+    <section class="step" id="step1">
+      <header><span class="num">1</span><h2>Создание пустого проекта</h2></header>
+      <p>Откройте Android Studio и выберите <strong>File → New → New Project</strong>. Возьмите самый простой пустой шаблон — обычно это <strong>«No Activity»</strong> в разделе <strong>«Phone and Tablet»</strong> (в Android Studio не всегда есть отдельный шаблон для консольных приложений Kotlin/JVM).</p>
+      <p>Назовите проект <code>MyConsoleApplication</code> и нажмите <strong>Finish</strong>. Дождитесь завершения первичной синхронизации Gradle, прежде чем продолжать.</p>
+      <div class="callout info"><span class="ico">ℹ️</span><div>Первая синхронизация завершится ошибкой — <strong>это ожидаемо</strong>, ведь далее мы превратим проект из Android-приложения в консольное.</div></div>
+    </section>
+
+    <!-- ======= ШАГ 2 ======= -->
+    <section class="step" id="step2">
+      <header><span class="num">2</span><h2>Настройка settings.gradle.kts</h2></header>
+      <p>Откройте файл <code>settings.gradle.kts</code> в корне проекта и замените его содержимое:</p>
+      <figure class="code">
+        <figcaption><span class="fname">settings.gradle.kts</span><button class="copy" type="button">Копировать</button></figcaption>
+<pre><code><span class="tk-fn">pluginManagement</span> {
+    <span class="tk-fn">repositories</span> {
+        <span class="tk-fn">google</span>()
+        <span class="tk-fn">mavenCentral</span>()
+        <span class="tk-fn">gradlePluginPortal</span>()
+    }
+}
+<span class="tk-fn">dependencyResolutionManagement</span> {
+    <span class="tk-fn">repositories</span> {
+        <span class="tk-fn">google</span>()
+        <span class="tk-fn">mavenCentral</span>()
+    }
+}
+<span class="tk-var">rootProject.name</span> = <span class="tk-str">"MyConsoleApplication"</span>
+<span class="tk-fn">include</span>(<span class="tk-str">":app"</span>)</code></pre>
+      </figure>
+    </section>
+
+    <!-- ======= ШАГ 3 ======= -->
+    <section class="step" id="step3">
+      <header><span class="num">3</span><h2>Добавление каталога версий</h2></header>
+      <p>Откройте (или создайте) файл <code>gradle/libs.versions.toml</code>. Он централизует версию Kotlin в одном месте вместо её жёсткого прописывания в нескольких Gradle-файлах:</p>
+      <figure class="code">
+        <figcaption><span class="fname">gradle/libs.versions.toml</span><button class="copy" type="button">Копировать</button></figcaption>
+<pre><code><span class="tk-sec">[versions]</span>
+<span class="tk-key">kotlin</span> = <span class="tk-str">"1.9.24"</span>
+
+<span class="tk-sec">[plugins]</span>
+<span class="tk-key">kotlin-jvm</span> = { <span class="tk-key">id</span> = <span class="tk-str">"org.jetbrains.kotlin.jvm"</span>, <span class="tk-key">version.ref</span> = <span class="tk-str">"kotlin"</span> }</code></pre>
+      </figure>
+      <div class="callout tip"><span class="ico">💡</span><div><strong>Совет:</strong> если Android-шаблон уже создал блок <code>[versions]</code> с записью <code>kotlin = "..."</code>, переиспользуйте этот ключ вместо дублирования.</div></div>
+    </section>
+
+    <!-- ======= ШАГ 4 ======= -->
+    <section class="step" id="step4">
+      <header><span class="num">4</span><h2>Настройка корневого build.gradle.kts</h2></header>
+      <p>Откройте корневой <code>build.gradle.kts</code> (находящийся прямо в папке проекта, а не внутри <code>app/</code>). Замените объявления Android/KMP-плагинов на:</p>
+      <figure class="code">
+        <figcaption><span class="fname">build.gradle.kts (корень)</span><button class="copy" type="button">Копировать</button></figcaption>
+<pre><code><span class="tk-fn">plugins</span> {
+    <span class="tk-fn">alias</span>(libs.plugins.kotlin.jvm) <span class="tk-kw">apply</span> <span class="tk-kw">false</span>
+}</code></pre>
+      </figure>
+      <div class="callout warn"><span class="ico">⚠️</span><div><strong>Почему это важно:</strong> если плагин Kotlin объявлен с версией и в корне, и в модуле <code>app</code>, Gradle выдаст ошибку: <em>«the plugin is already on the classpath with an unknown version»</em>. Объявление версии один раз здесь (с <code>apply false</code>) и применение плагина в <code>app</code> без версии исключает этот конфликт.</div></div>
+    </section>
+
+    <!-- ======= ШАГ 5 ======= -->
+    <section class="step" id="step5">
+      <header><span class="num">5</span><h2>Настройка app/build.gradle.kts</h2></header>
+      <p>Полностью замените содержимое файла <code>app/build.gradle.kts</code>:</p>
+      <figure class="code">
+        <figcaption><span class="fname">app/build.gradle.kts</span><button class="copy" type="button">Копировать</button></figcaption>
+<pre><code><span class="tk-fn">plugins</span> {
+    <span class="tk-fn">alias</span>(libs.plugins.kotlin.jvm)
+    <span class="tk-fn">application</span>
+}
+
+<span class="tk-fn">repositories</span> {
+    <span class="tk-fn">mavenCentral</span>()
+}
+
+<span class="tk-fn">dependencies</span> {
+    <span class="tk-fn">testImplementation</span>(<span class="tk-fn">kotlin</span>(<span class="tk-str">"test"</span>))
+}
+
+<span class="tk-fn">application</span> {
+    mainClass.<span class="tk-fn">set</span>(<span class="tk-str">"MainKt"</span>)
+}
+
+tasks.test {
+    <span class="tk-fn">useJUnitPlatform</span>()
+}</code></pre>
+      </figure>
+      <div class="callout info"><span class="ico">ℹ️</span><div>Значение <code>mainClass</code> — это <code>MainKt</code>, потому что Kotlin компилирует функцию верхнего уровня <code>fun main()</code> из файла <code>Main.kt</code> в класс с именем <code>MainKt</code>.</div></div>
+    </section>
+
+    <!-- ======= ШАГ 6 ======= -->
+    <section class="step" id="step6">
+      <header><span class="num">6</span><h2>Очистка структуры папок</h2></header>
+      <p>Android-шаблон оставляет файлы, которые обычному консольному приложению не нужны. Удалите, если они есть:</p>
+      <ul>
+        <li>🗑 <code>app/src/main/AndroidManifest.xml</code></li>
+        <li>🗑 <code>app/src/main/res/</code> — вся папка целиком</li>
+      </ul>
+      <p>Затем создайте новую папку для исходников: <code>app/src/main/kotlin</code> — именно здесь будут жить Kotlin-файлы JVM-модуля (не Android):</p>
+      <figure class="code">
+        <figcaption><span class="fname">структура папок</span></figcaption>
+<pre><code>app/
+└─ src/
+   └─ main/
+      └─ kotlin/   ← создайте эту папку</code></pre>
+      </figure>
+    </section>
+
+    <!-- ======= ШАГ 7 ======= -->
+    <section class="step" id="step7">
+      <header><span class="num">7</span><h2>Написание Main.kt</h2></header>
+      <p>Создайте файл <code>Main.kt</code> внутри <code>app/src/main/kotlin</code>:</p>
+      <figure class="code">
+        <figcaption><span class="fname">app/src/main/kotlin/Main.kt</span><button class="copy" type="button">Копировать</button></figcaption>
+<pre><code><span class="tk-kw">fun</span> <span class="tk-fn">main</span>() {
+    <span class="tk-fn">println</span>(<span class="tk-str">"Hello from MyConsoleApplication!"</span>)
+    <span class="tk-com">// Небольшой пример, ради которого стоит попробовать отладку:</span>
+    <span class="tk-com">// поставьте точку останова на следующей строке и выполните её пошагово.</span>
+    <span class="tk-kw">val</span> numbers = <span class="tk-fn">listOf</span>(<span class="tk-num">1</span>, <span class="tk-num">2</span>, <span class="tk-num">3</span>, <span class="tk-num">4</span>, <span class="tk-num">5</span>)
+    <span class="tk-kw">val</span> sum = numbers.<span class="tk-fn">sum</span>()
+    <span class="tk-fn">println</span>(<span class="tk-str">"Sum of <span class="tk-int">$numbers</span> = <span class="tk-int">$sum</span>"</span>)
+    <span class="tk-fn">print</span>(<span class="tk-str">"Enter your name: "</span>)
+    <span class="tk-kw">val</span> name = <span class="tk-fn">readLine</span>() <span class="tk-kw">?:</span> <span class="tk-str">"stranger"</span>
+    <span class="tk-fn">println</span>(<span class="tk-str">"Nice to meet you, <span class="tk-int">$name</span>!"</span>)
+}</code></pre>
+      </figure>
+    </section>
+
+    <!-- ======= ШАГ 8 ======= -->
+    <section class="step" id="step8">
+      <header><span class="num">8</span><h2>Синхронизация проекта</h2></header>
+      <p>Нажмите <strong>File → Sync Project with Gradle Files</strong> (или значок слоника / синхронизации на панели инструментов). Следите за панелью <strong>Build</strong> внизу — синхронизация должна завершиться без красных ошибок.</p>
+      <div class="callout ok"><span class="ico">✅</span><div>Возле <code>fun main()</code> в файле <code>Main.kt</code> должна появиться зелёная стрелка запуска ▶. Это сигнал, что проект корректно настроен как JVM-консольное приложение.</div></div>
+    </section>
+
+    <!-- ======= ШАГ 9 ======= -->
+    <section class="step" id="step9">
+      <header><span class="num">9</span><h2>Запуск приложения</h2></header>
+      <p>Запустить приложение можно тремя способами:</p>
+      <ul>
+        <li>▶ нажмите зелёную стрелку в поле рядом с <code>fun main()</code>;</li>
+        <li>🖱 кликните правой кнопкой по <code>Main.kt</code> → <strong>Run 'MainKt'</strong>;</li>
+        <li>⌨️ из терминала в корне проекта: <code>./gradlew run</code> (macOS/Linux) или <code>gradlew.bat run</code> (Windows).</li>
+      </ul>
+      <p>Вывод — включая интерактивный запрос имени — появится в панели <strong>Run</strong> внизу IDE. Введите ответ там и нажмите <kbd>Enter</kbd>.</p>
+      <figure class="code">
+        <figcaption><span class="fname">пример вывода</span></figcaption>
+<pre><code>Hello from MyConsoleApplication!
+Sum of [1, 2, 3, 4, 5] = 15
+Enter your name: Анна
+Nice to meet you, Анна!</code></pre>
+      </figure>
+    </section>
+
+    <!-- ======= ШАГ 10 ======= -->
+    <section class="step" id="step10">
+      <header><span class="num">10</span><h2>Отладка приложения</h2></header>
+      <ol>
+        <li>Кликните в левом поле рядом со строкой (например, <code>val sum = numbers.sum()</code>), чтобы поставить точку останова — появится красная точка.</li>
+        <li>Нажмите значок 🐞 <strong>Debug</strong> (рядом с Run) или кликните правой кнопкой → <strong>Debug 'MainKt'</strong>.</li>
+      </ol>
+      <p>Выполнение приостановится на точке останова. Горячие клавиши панели <strong>Debug</strong> внизу:</p>
+      <table class="keys">
+        <tr><td><kbd>F8</kbd></td><td>Step Over — выполнить текущую строку и перейти к следующей</td></tr>
+        <tr><td><kbd>F7</kbd></td><td>Step Into — войти внутрь вызываемой функции</td></tr>
+        <tr><td><kbd>Shift+F8</kbd></td><td>Step Out — выйти из текущей функции</td></tr>
+        <tr><td><kbd>F9</kbd></td><td>Resume Program — продолжить выполнение программы</td></tr>
+      </table>
+      <p>Изучайте живые значения в панели <strong>Variables</strong> или наводите курсор на переменные прямо в редакторе, чтобы увидеть их текущие значения.</p>
+    </section>
+
+    <!-- ======= НЕПОЛАДКИ ======= -->
+    <section class="step" id="troubleshoot">
+      <header><span class="num">!</span><h2>Устранение неполадок</h2></header>
+
+      <details>
+        <summary>После синхронизации нет зелёной стрелки запуска</summary>
+        <div class="body">Проверьте вкладку <strong>Build</strong> на наличие ошибок. Самая частая причина — оставшаяся от исходного шаблона строка <code>id("com.android.application")</code> в файле <code>app/build.gradle.kts</code> — удалите её.</div>
+      </details>
+
+      <details>
+        <summary>Ошибка «Plugin already on the classpath with an unknown version»</summary>
+        <div class="body">Это значит, что версия плагина Kotlin объявлена более чем в одном месте. Убедитесь, что версия указана единственный раз — в <code>libs.versions.toml</code>, — а оба Gradle-файла ссылаются на неё через <code>alias(libs.plugins.kotlin.jvm)</code>, а не через жёстко прописанную строку версии.</div>
+      </details>
+
+      <details>
+        <summary>readLine() сразу возвращает null</summary>
+        <div class="body">Такое случается при запуске через <code>./gradlew run</code> без подключённого интерактивного терминала. Запуск из панели Run в Android Studio (зелёная ▶) корректно обрабатывает стандартный ввод (stdin).</div>
+      </details>
+    </section>
+
+    <!-- ======= АРХИВ ======= -->
+    <div class="zip">
+      📦 <strong>Сопроводительный файл:</strong> архив <strong>MyConsoleApplication.zip</strong> содержит полностью готовый рабочий проект из этого руководства — распакуйте его и откройте папку напрямую в Android Studio либо выполните шаги выше, чтобы собрать проект самостоятельно.
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  Консольное приложение Kotlin в Android Studio • Gradle Kotlin DSL • Каталог версий • Отладка
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.closest('figure.code').querySelector('pre').innerText;
+      navigator.clipboard.writeText(code).then(function(){
+        btn.textContent = 'Скопировано ✓';
+        setTimeout(function(){ btn.textContent = 'Копировать'; }, 1600);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
