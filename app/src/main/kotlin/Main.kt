@@ -12,6 +12,6 @@ fun main() {
     println("Sum of $numbers = $sum")
 
     print("Назовите свое имя: ")
-    val name = readLine() ?: "stranger"
+    val name = readlnOrNull() ?: "stranger"
     println("Nice to meet you, $name!")
 }
